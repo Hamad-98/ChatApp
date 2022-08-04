@@ -1,7 +1,10 @@
 
 ## Built with
-1. Styled Components
-2. Material UI
+1. Next.Js
+2.Styled Components
+3. Material UI
+4. Server-side rendering
+5. Firebase v9
 
 
 ## Getting Started

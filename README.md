@@ -1,10 +1,9 @@
 
 ## Built with
-1. Next.Js
-2.Styled Components
-3. Material UI
-4. Server-side rendering
-5. Firebase v9
+1.Next.Js
+2.Server-side Rendering
+3. Firebase v9
+4. React firebase hooks
 
 
 ## Getting Started

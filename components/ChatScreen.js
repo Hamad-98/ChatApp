@@ -16,19 +16,36 @@ import {
   setDoc,
   serverTimestamp,
   addDoc,
+  where,
 } from "firebase/firestore";
 import { Message } from "./Message";
 import InsertEmoticon from "@mui/icons-material/InsertEmoticon";
 import Mic from "@mui/icons-material/Mic";
+import getRecipientEmail from "../utils/getRecipientEmail";
+import TimeAgo from "timeago-react";
 
 export const ChatScreen = ({ chat, messages }) => {
   const [user] = useAuthState(auth);
   const router = useRouter();
   const [input, setInput] = useState("");
 
-  const ref = doc(db, "chat", router.query.id, "messages");
-  const q = query(ref, orderBy("timestamp", "asc"));
-  const [messagesSnapshot] = useCollection(q);
+  const messagesCollRef = collection(db, "chat", router.query.id, "messages");
+  const messaqesQuery = query(messagesCollRef, orderBy("timestamp", "asc"));
+
+  const [messagesSnapshot] = useCollection(messaqesQuery);
+
+  const reciepientEmail = getRecipientEmail(chat.users, user);
+
+  const userCollectionRef = collection(db, "user");
+
+  const recipientCollRef = query(
+    userCollectionRef,
+    where("email", "==", reciepientEmail)
+  );
+
+  const [recipientSnapshot] = useCollection(recipientCollRef);
+
+  const recipient = recipientSnapshot?.docs?.map((doc) => doc.data());
 
   const showMessages = () => {
     if (messagesSnapshot) {
@@ -38,10 +55,14 @@ export const ChatScreen = ({ chat, messages }) => {
           user={msg.data().user}
           message={{
             ...msg.data(),
-            timestamp: msg.data().timestamp?.toDate().getTime(),
+            timestamp: serverTimestamp(),
           }}
         />
       ));
+    } else {
+      return JSON.parse(messages).map((msg) => {
+        <Message key={msg.id} user={msg.user} message={msg} />;
+      });
     }
   };
 
@@ -58,9 +79,9 @@ export const ChatScreen = ({ chat, messages }) => {
       { merge: true }
     );
 
-    const chatRef = doc(db, "chat", router.query.id, "messages");
+    const chatRef = collection(db, "chat", router.query.id, "messages");
 
-    setDoc(
+    addDoc(
       chatRef,
       {
         timestamp: serverTimestamp(),
@@ -73,15 +94,30 @@ export const ChatScreen = ({ chat, messages }) => {
 
     setInput("");
   };
-
+  console.log(recipient?.[0]?.lastSeen);
   return (
     <Container>
       <Header>
-        <Avatar />
-
+        {recipient ? (
+          <Avatar src={recipient?.[0]?.photoURL} />
+        ) : (
+          <Avatar src={reciepientEmail[0]} />
+        )}
         <HeaderInformation>
-          <h3>Recipient Email</h3>
-          <p>Last seen..</p>
+          <h3>{reciepientEmail}</h3>
+
+          {recipientSnapshot ? (
+            <p>
+              Last active:
+              {recipient?.[0]?.lastSeen?.toDate() ? (
+                <TimeAgo datetime={recipient?.[0]?.lastSeen.toDate()} />
+              ) : (
+                "unavailable"
+              )}
+            </p>
+          ) : (
+            <p>Loading last active..</p>
+          )}
         </HeaderInformation>
 
         <HeaderIcons>

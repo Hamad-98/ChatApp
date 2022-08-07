@@ -8,10 +8,8 @@ import {
   doc,
   getDocs,
   getDoc,
-  orderBy,
   query,
-  collectionGroup,
-  where,
+  orderBy,
 } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
 import getRecipientEmail from "../../utils/getRecipientEmail";
@@ -36,7 +34,7 @@ export default Chat;
 //context allow you to access url and props.
 //this returns props, so the compoenent can use the props
 export async function getServerSideProps(context) {
-  const ref = doc(db, "chat", context.query.id, "messages");
+  const ref = collection(db, "chat", context.query.id, "messages");
 
   //PREP the messages on the server: 2:16:31
   const q = query(ref, orderBy("timestamp", "asc"));
@@ -49,7 +47,7 @@ export async function getServerSideProps(context) {
     }))
     .map((message) => ({
       ...message,
-      timestamp: "hello",
+      timestamp: new Date().toLocaleString().replace(",", ""),
     }));
 
   //PREP THE CHATS

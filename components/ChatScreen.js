@@ -26,8 +26,8 @@ export const ChatScreen = ({ chat, messages }) => {
   const router = useRouter();
   const [input, setInput] = useState("");
 
-  const ref = doc(db, "chat", router.query.id);
-  const q = query(collection(ref, "messages"), orderBy("timestamp", "asc"));
+  const ref = doc(db, "chat", router.query.id, "messages");
+  const q = query(ref, orderBy("timestamp", "asc"));
   const [messagesSnapshot] = useCollection(q);
 
   const showMessages = () => {
@@ -58,7 +58,7 @@ export const ChatScreen = ({ chat, messages }) => {
       { merge: true }
     );
 
-    const chatRef = doc(db, "chat", router.query.id);
+    const chatRef = doc(db, "chat", router.query.id, "messages");
 
     setDoc(
       chatRef,

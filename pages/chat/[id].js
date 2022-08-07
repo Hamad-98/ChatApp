@@ -36,13 +36,11 @@ export default Chat;
 //context allow you to access url and props.
 //this returns props, so the compoenent can use the props
 export async function getServerSideProps(context) {
-  const ref = doc(db, "chat", context.query.id);
+  const ref = doc(db, "chat", context.query.id, "messages");
 
   //PREP the messages on the server: 2:16:31
-  const q = query(collection(ref, "messages"), orderBy("timestamp", "asc"));
+  const q = query(ref, orderBy("timestamp", "asc"));
   const docSnap = await getDocs(q);
-
-  console.log(docSnap.docs);
 
   const messages = docSnap.docs
     .map((doc) => ({
@@ -55,7 +53,8 @@ export async function getServerSideProps(context) {
     }));
 
   //PREP THE CHATS
-  const messagesRef = await getDoc(ref);
+  const ref2 = doc(db, "chat", context.query.id);
+  const messagesRef = await getDoc(ref2);
   const chat = {
     id: messagesRef.id,
     ...messagesRef.data(),

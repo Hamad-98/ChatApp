@@ -2,7 +2,7 @@ import AttachFile from "@mui/icons-material/AttachFile";
 import MoreVert from "@mui/icons-material/MoreVert";
 import { Avatar } from "@mui/material";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import styled from "styled-components";
 import { auth, db } from "../firebase.config";
@@ -28,22 +28,18 @@ export const ChatScreen = ({ chat, messages }) => {
   const [user] = useAuthState(auth);
   const router = useRouter();
   const [input, setInput] = useState("");
-
   const messagesCollRef = collection(db, "chat", router.query.id, "messages");
   const messaqesQuery = query(messagesCollRef, orderBy("timestamp", "asc"));
-
   const [messagesSnapshot] = useCollection(messaqesQuery);
-
   const reciepientEmail = getRecipientEmail(chat.users, user);
-
   const userCollectionRef = collection(db, "user");
-
   const recipientCollRef = query(
     userCollectionRef,
     where("email", "==", reciepientEmail)
   );
-
   const [recipientSnapshot] = useCollection(recipientCollRef);
+
+  const endOfMessagesRef = useRef(null);
 
   const recipient = recipientSnapshot?.docs?.map((doc) => doc.data());
 
@@ -55,7 +51,6 @@ export const ChatScreen = ({ chat, messages }) => {
           user={msg.data().user}
           message={{
             ...msg.data(),
-            timestamp: serverTimestamp(),
           }}
         />
       ));
@@ -84,7 +79,7 @@ export const ChatScreen = ({ chat, messages }) => {
     addDoc(
       chatRef,
       {
-        timestamp: serverTimestamp(),
+        timestamp: Date().toLocaleString(),
         message: input,
         user: user.email,
         photoURL: user.photoURL,
@@ -93,8 +88,8 @@ export const ChatScreen = ({ chat, messages }) => {
     );
 
     setInput("");
+    scrollToBottom();
   };
-  console.log(recipient?.[0]?.lastSeen);
   return (
     <Container>
       <Header>
@@ -130,10 +125,7 @@ export const ChatScreen = ({ chat, messages }) => {
         </HeaderIcons>
       </Header>
 
-      <MessageContainer>
-        {showMessages()}
-        <EndOfMessage />
-      </MessageContainer>
+      <MessageContainer>{showMessages()}</MessageContainer>
 
       <InputContainer>
         <InsertEmoticon />
